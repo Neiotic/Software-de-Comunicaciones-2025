@@ -1,0 +1,172 @@
+[4mKILL[24m(1)                                User Commands                                [4mKILL[24m(1)
+
+[1mNAME[0m
+       kill - terminate a process
+
+[1mSYNOPSIS[0m
+       [1mkill  [22m[[1m-[4m[22msignal[24m|[1m-s [4m[22msignal[24m|[1m-p[22m]  [[1m-q [4m[22mvalue[24m] [[1m-a[22m] [[1m--timeout [4m[22mmilliseconds[24m [4msignal[24m] [[1m--[22m]
+       [4mpid[24m|[4mname[24m...
+
+       [1mkill -l [22m[[4mnumber[24m|0x[4msigmask[24m] | [1m-L[0m
+
+       [1mkill -d [4m[22mpid[0m
+
+[1mDESCRIPTION[0m
+       The command [1mkill [22msends the specified [4msignal[24m to the specified processes or process
+       groups.
+
+       If no signal is specified, the [1mTERM [22msignal is sent. The default action for this
+       signal is to terminate the process. This signal should be used in preference to the
+       [1mKILL [22msignal (number 9), since a process may install a handler for the TERM signal in
+       order to perform clean-up steps before terminating in an orderly fashion. If a
+       process does not terminate after a [1mTERM [22msignal has been sent, then the [1mKILL [22msignal
+       may be used; be aware that the latter signal cannot be caught, and so does not give
+       the target process the opportunity to perform any clean-up before terminating.
+
+       Most modern shells have a builtin [1mkill [22mcommand, with a usage rather similar to that
+       of the command described here. The [1m--all[22m, [1m--pid[22m, and [1m--queue [22moptions, and the
+       possibility to specify processes by command name, are local extensions.
+
+       If [4msignal[24m is 0, then no actual signal is sent, but error checking is still
+       performed.
+
+[1mARGUMENTS[0m
+       The list of processes to be signaled can be a mixture of names and PIDs.
+
+       [4mpid[0m
+           Each [4mpid[24m can be expressed in one of the following ways:
+
+           [4mn[0m
+               where [4mn[24m is larger than 0. The process with PID [4mn[24m is signaled.
+
+           [1m0[0m
+               All processes in the current process group are signaled.
+
+           [1m-1[0m
+               All processes with a PID larger than 1 are signaled.
+
+           [1m-[4m[22mn[0m
+               where [4mn[24m is larger than 1. All processes in process group [4mn[24m are signaled.
+               When an argument of the form '-n' is given, and it is meant to denote a
+               process group, either a signal must be specified first, or the argument must
+               be preceded by a '--' option, otherwise it will be taken as the signal to
+               send.
+
+       [4mname[0m
+           All processes invoked using this [4mname[24m will be signaled.
+
+[1mOPTIONS[0m
+       [1m-s[22m, [1m--signal [4m[22msignal[0m
+           The signal to send. It may be given as a name or a number.
+
+       [1m-l[22m, [1m--list [22m[[4mnumber[24m|0x[4msigmask[24m]
+           Print a list of signal names, convert the given signal number to a name, or
+           convert the given signal mask to names. The signals can be found in
+           [4m/usr/include/linux/signal.h[24m.
+
+               $ ps s $$
+                 UID     PID          PENDING          BLOCKED          IGNORED           CAUGHT STAT TTY        TIME COMMAND
+                1000 1608069 0000000000000000 0000000000000002 0000000000384000 0000000008013003 Ss   pts/44     0:02 zsh
+               $ kill -l 0x0000000000384000
+               TERM
+               TSTP
+               TTIN
+               TTOU
+
+       [1m-L[22m, [1m--table[0m
+           Similar to [1m-l[22m, but it will print signal names and their corresponding numbers.
+
+       [1m-a[22m, [1m--all[0m
+           Do not restrict the command-name-to-PID conversion to processes with the same
+           UID as the present process.
+
+       [1m-p[22m, [1m--pid[0m
+           Only print the process ID (PID) of the named processes, do not send any signals.
+
+       [1m-r[22m, [1m--require-handler[0m
+           Do not send the signal if it is not caught in userspace by the signalled
+           process.
+
+       [1m--verbose[0m
+           Print PID(s) that will be signaled with [1mkill [22malong with the signal.
+
+       [1m-q[22m, [1m--queue [4m[22mvalue[0m
+           Send the signal using [1msigqueue[22m(3) rather than [1mkill[22m(2). The [4mvalue[24m argument is an
+           integer that is sent along with the signal. If the receiving process has
+           installed a handler for this signal using the [1mSA_SIGINFO [22mflag to [1msigaction[22m(2),
+           then it can obtain this data via the [4msi_sigval[24m field of the [4msiginfo_t[24m structure.
+
+       [1m--timeout [4m[22mmilliseconds[24m [4msignal[0m
+           Send a signal defined in the usual way to a process, followed by an additional
+           signal after a specified delay. The [1m--timeout [22moption causes [1mkill [22mto wait for a
+           period defined in [4mmilliseconds[24m before sending a follow-up [4msignal[24m to the process.
+           This feature is implemented using the Linux kernel PID file descriptor feature
+           in order to guarantee that the follow-up signal is sent to the same process or
+           not sent if the process no longer exists.
+
+           Note that the operating system may re-use PIDs and implementing an equivalent
+           feature in a shell using [1mkill [22mand [1msleep [22mwould be subject to races whereby the
+           follow-up signal might be sent to a different process that used a recycled PID.
+
+           The [1m--timeout [22moption can be specified multiple times: the signals are sent
+           sequentially with the specified timeouts. The [1m--timeout [22moption can be combined
+           with the [1m--queue [22moption.
+
+           As an example, the following command sends the signals [1mQUIT[22m, [1mTERM [22mand [1mKILL [22min
+           sequence and waits for 1000 milliseconds between sending the signals:
+
+               kill --verbose --timeout 1000 TERM --timeout 1000 KILL \
+                       --signal QUIT 12345
+
+       [1m-d[22m, [1m--show-process-state [4m[22mpid[0m
+           Decode signal related fields in /proc/[4mpid[24m/status.
+
+               $ kill -d $$
+               Blocked: INT
+               Ignored: TERM TSTP TTIN TTOU
+               Caught: HUP INT PIPE ALRM CHLD WINCH
+
+[1mEXIT STATUS[0m
+       [1mkill [22mhas the following exit status values:
+
+       [1m0[0m
+           success
+
+       [1m1[0m
+           failure
+
+       [1m64[0m
+           partial success (when more than one process specified)
+
+[1mNOTES[0m
+       Although it is possible to specify the TID (thread ID, see [1mgettid[22m(2)) of one of the
+       threads in a multithreaded process as the argument of [1mkill[22m, the signal is
+       nevertheless directed to the process (i.e., the entire thread group). In other
+       words, it is not possible to send a signal to an explicitly selected thread in a
+       multithreaded process. The signal will be delivered to an arbitrarily selected
+       thread in the target process that is not blocking the signal. For more details, see
+       [1msignal[22m(7) and the description of [1mCLONE_THREAD [22min [1mclone[22m(2).
+
+       Various shells provide a builtin [1mkill [22mcommand that is preferred in relation to the
+       [1mkill[22m(1) executable described by this manual. The easiest way to ensure one is
+       executing the command described in this page is to use the full path when calling
+       the command, for example: [1m/bin/kill --version[0m
+
+[1mAUTHORS[0m
+       [34mSalvatore Valente [0m<svalente@mit.edu>, [34mKarel Zak [0m<kzak@redhat.com>
+
+       The original version was taken from BSD 4.4.
+
+[1mSEE ALSO[0m
+       [1mbash[22m(1), [1mtcsh[22m(1), [1msigaction[22m(2), [1mkill[22m(2), [1msigqueue[22m(3), [1msignal[22m(7) [1mproc(5)[0m
+       [1mproc_pid_status(5)[0m
+
+[1mREPORTING BUGS[0m
+       For bug reports, use the [34missue tracker[0m
+       <https://github.com/util-linux/util-linux/issues>.
+
+[1mAVAILABILITY[0m
+       The [1mkill [22mcommand is part of the util-linux package which can be downloaded from
+       [34mLinux Kernel Archive [0m<https://www.kernel.org/pub/linux/utils/util-linux/>.
+
+util-linux 2.41                          2025-03-29                                 [4mKILL[24m(1)
