@@ -1,0 +1,7 @@
+Proceso 1: Error 1
+Proceso 2: Error 2
+Proceso 1: Error 3
+Proceso 1: Error 4
+Proceso 2: Error 5
+Proceso 2: 
+Proceso 2: ""
