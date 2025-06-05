@@ -3,7 +3,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-
+#include <bit>
+#include <string_view>
 
 int main() {
 	//Crea canal
