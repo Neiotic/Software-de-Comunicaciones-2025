@@ -29,15 +29,25 @@ int main(){
 
     std::array<char, 2048> mensaje;
     sockaddr_in dir_cliente;
-    socklen_t longitud_dir = sizeof(dir_cliente);  
-    ssize_t leidos = recvfrom(sd, mensaje.data(), mensaje.size(), 0, (sockaddr *)&dir_cliente, &longitud_dir);    
-    if(leidos < 0) {      
-        perror("error en recvfrom");      
-        return 1;    
-    }
+    socklen_t longitud_dir = sizeof(dir_cliente); 
+    while (1) {
+        ssize_t leidos = recvfrom(sd, mensaje.data(), mensaje.size(), 0, (sockaddr *)&dir_cliente, &longitud_dir);    
+        if(leidos < 0) {      
+            perror("error en recvfrom");      
+            return 1;    
+        }
 
-    //si vas a responder, utiliza sendto(). Tienes la dirección del cliente en dir_cliente
+        //si vas a responder, utiliza sendto(). Tienes la dirección del cliente en dir_cliente
+        ssize_t enviados = sendto(sd,mensaje.data(),leidos ,0,(sockaddr *)&dir_cliente,sizeof(dir_cliente));
+        if (enviados < 0) {
+            perror("Error en envio");
+            return 1;
+        }
+    } 
     
+
+
+
     close(sd);
 
     return 0;
